@@ -4,8 +4,6 @@ package nl.k3n.transformers;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import nl.k3n.interfaces.Source;
 import nl.k3n.interfaces.Transformer;
 
@@ -53,15 +51,15 @@ public class FlatMap<I, O> implements Transformer<I, O>, Source<O>, Iterator<O> 
             return true;
         }
         else if (this.src.iterator().hasNext()) {
-            try {
-                this.mappedSrc.close();
-            } catch (IOException ex) {
-                //TODO:
-            }
             this.mappedSrc = this.mapper.apply(this.src.iterator().next());
             return this.mappedSrc.iterator().hasNext();
         }
         else {
+            try {
+                this.close();
+            } catch (IOException ex) {
+                //TODO:
+            }
             return false;
         }
     }
@@ -73,8 +71,9 @@ public class FlatMap<I, O> implements Transformer<I, O>, Source<O>, Iterator<O> 
 
     @Override
     public void close() throws IOException {
-        if (this.mappedSrc != null) {
-            this.mappedSrc.close();
+        if (this.src != null) {
+            this.src.close();
+            this.src = null;
         }
     }
 }

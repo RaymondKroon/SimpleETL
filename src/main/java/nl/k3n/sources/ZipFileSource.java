@@ -1,6 +1,9 @@
 
 package nl.k3n.sources;
 
+import com.google.common.io.ByteStreams;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,7 +35,19 @@ public class ZipFileSource implements Source<InputStream>{
     private InputStream streamForEntry(ZipEntry entry) {
         long size = entry.getSize();
         try {
-            return this.zipFile.getInputStream(entry);
+            if (size < 0 || size > Integer.MAX_VALUE) {
+                return this.zipFile.getInputStream(entry);    
+            }
+            else {
+                int intSize = size > 0 && size < Integer.MAX_VALUE ? (int) size : 0;
+
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream(intSize);
+                try (InputStream entryStream = this.zipFile.getInputStream(entry)) {
+                    ByteStreams.copy(entryStream, buffer);
+                }
+                
+                return new ByteArrayInputStream(buffer.toByteArray());
+            }
         } catch (IOException ex) {
             throw new RuntimeException("Cannot creat entry stream", ex);
         }

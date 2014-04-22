@@ -12,11 +12,11 @@ import nl.k3n.aggregators.XMLChunkAggregator;
 import nl.k3n.interfaces.Aggregator;
 import nl.k3n.interfaces.Sink;
 import nl.k3n.interfaces.Source;
-import nl.k3n.interfaces.Transformer;
 import nl.k3n.sinks.CountSink;
 import nl.k3n.sources.ZipFileSource;
-import nl.k3n.transformers.ZipStreamFilter;
+import nl.k3n.transformers.FlatMap;
 import nl.k3n.transformers.StreamToXMLEventStream;
+import nl.k3n.transformers.ZipStreamFilter;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -56,8 +56,8 @@ public class SimpleETL {
                 
                 try (Source<InputStream> src = new ZipFileSource(new File(fileName), zipFilter)) {
                     
-                    Transformer<InputStream, InputStream> extractZips = new ZipStreamFilter(src, xmlFilter);
-                    Transformer<InputStream, XMLEvent> streamToXml = new StreamToXMLEventStream(extractZips);
+                    FlatMap<InputStream, InputStream> extractZips = new ZipStreamFilter(src, xmlFilter);
+                    FlatMap<InputStream, XMLEvent> streamToXml = new StreamToXMLEventStream(extractZips);
                     Aggregator<XMLEvent, XMLChunk> aggregator = XMLChunkAggregator.BAGAggregator(streamToXml);
                     
                     Sink<XMLChunk> sink = new CountSink(aggregator);
