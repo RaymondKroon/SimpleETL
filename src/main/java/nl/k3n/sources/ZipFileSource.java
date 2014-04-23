@@ -33,21 +33,8 @@ public class ZipFileSource implements Source<InputStream>{
     }
     
     private InputStream streamForEntry(ZipEntry entry) {
-        long size = entry.getSize();
         try {
-            if (size < 0 || size > Integer.MAX_VALUE) {
-                return this.zipFile.getInputStream(entry);    
-            }
-            else {
-                int intSize = size > 0 && size < Integer.MAX_VALUE ? (int) size : 0;
-
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream(intSize);
-                try (InputStream entryStream = this.zipFile.getInputStream(entry)) {
-                    ByteStreams.copy(entryStream, buffer);
-                }
-                
-                return new ByteArrayInputStream(buffer.toByteArray());
-            }
+            return this.zipFile.getInputStream(entry);    
         } catch (IOException ex) {
             throw new RuntimeException("Cannot creat entry stream", ex);
         }
