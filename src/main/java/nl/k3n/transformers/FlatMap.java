@@ -3,9 +3,12 @@ package nl.k3n.transformers;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import nl.k3n.interfaces.Source;
-import nl.k3n.interfaces.Transformer;
 
 /**
  *
@@ -13,13 +16,25 @@ import nl.k3n.interfaces.Transformer;
  * @param <I>
  * @param <O>
  */
-public class FlatMap<I, O> implements Transformer<I, O>, Source<O>, Iterator<O> {
-
-    private Source<I> src;
-    private Function<I, ? extends Source<O>> mapper;
-    private Source<O> mappedSrc;
+public class FlatMap<I, O> implements Iterator<O>, Source<O> {
     
-    public FlatMap(Source<I> src, Function<I, ? extends Source<O>> mapper) {
+    private Spliterator<I> src;
+    protected Function<I, ? extends Stream<O>> mapper;
+    private Spliterator<O> mappedSrc;
+    
+    private O currentOutput;
+    
+    private Stream<O> innerStream;
+    
+    private static <I> Stream emptyMapper(I input) {
+        return Stream.empty();
+    }
+    
+    public FlatMap (Stream<I> src) {
+        this(src, FlatMap::emptyMapper);
+    }
+    
+    public FlatMap(Stream<I> src, Function<I, ? extends Stream<O>> mapper) {
         if (src == null) {
             throw new NullPointerException("src");
         }
@@ -28,52 +43,52 @@ public class FlatMap<I, O> implements Transformer<I, O>, Source<O>, Iterator<O> 
             throw new NullPointerException("mapper");
         }
         
-        this.src = src;
+        this.src = src.spliterator();
         this.mapper = mapper;
         
+        this.innerStream = StreamSupport.stream(Spliterators.spliterator(this, 1,
+                Spliterator.ORDERED), false);
+        
+    }
+
+    private void nothing(I in) {}
+    
+    private void updateMappedSrc(I in) {
+        this.mappedSrc = this.mapper.apply(in).spliterator();
+    }
+    
+    private void setCurrentOutput(O in) {
+        this.currentOutput = in;
     }
     
     @Override
-    public Iterator<O> iterator() {
-        return this;
-    }
-
-    @Override
     public boolean hasNext() {
-        if (this.mappedSrc == null && !this.src.iterator().hasNext()) {
+        if (this.mappedSrc == null && !this.src.tryAdvance(this::updateMappedSrc)) {
             return false;
         } 
-        else if (this.mappedSrc == null && this.src.iterator().hasNext()) {
-            this.mappedSrc = this.mapper.apply(this.src.iterator().next());
-            return this.mappedSrc.iterator().hasNext();
-        }
-        else if (this.mappedSrc.iterator().hasNext()) {
+        else if (this.mappedSrc.tryAdvance(this::setCurrentOutput)) {
             return true;
         }
-        else if (this.src.iterator().hasNext()) {
-            this.mappedSrc = this.mapper.apply(this.src.iterator().next());
-            return this.mappedSrc.iterator().hasNext();
+        else if (this.src.tryAdvance(this::updateMappedSrc)) {
+            return this.mappedSrc.tryAdvance(this::setCurrentOutput);
         }
         else {
-            try {
-                this.close();
-            } catch (IOException ex) {
-                //TODO:
-            }
             return false;
         }
     }
 
     @Override
     public O next() {
-        return this.mappedSrc.iterator().next();
+        return this.currentOutput;
+    }
+
+    @Override
+    public Stream<O> stream() {
+        return innerStream;
     }
 
     @Override
     public void close() throws IOException {
-        if (this.src != null) {
-            this.src.close();
-            this.src = null;
-        }
+        // TODO
     }
 }

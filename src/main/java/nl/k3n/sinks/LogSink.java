@@ -2,9 +2,9 @@
 package nl.k3n.sinks;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 import nl.k3n.aggregators.XMLChunk;
 import nl.k3n.interfaces.Sink;
-import nl.k3n.interfaces.Source;
 
 /**
  *
@@ -12,9 +12,9 @@ import nl.k3n.interfaces.Source;
  */
 public class LogSink implements Sink<XMLChunk> {
 
-    private final Iterable<XMLChunk> src;
+    private final Stream<XMLChunk> src;
     
-    public LogSink(Iterable<XMLChunk> src) {
+    public LogSink(Stream<XMLChunk> src) {
         this.src = src;
     }
     

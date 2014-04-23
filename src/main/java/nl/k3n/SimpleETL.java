@@ -6,17 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
-import javax.xml.stream.events.XMLEvent;
 import nl.k3n.aggregators.XMLChunk;
 import nl.k3n.aggregators.XMLChunkAggregator;
-import nl.k3n.interfaces.Aggregator;
 import nl.k3n.interfaces.Sink;
 import nl.k3n.interfaces.Source;
 import nl.k3n.sinks.CountSink;
-import nl.k3n.sources.ZipFileSource;
-import nl.k3n.transformers.FlatMap;
-import nl.k3n.transformers.StreamToXMLEventStream;
-import nl.k3n.transformers.ZipStreamFilter;
+import nl.k3n.sources.DoubleZipSource;
+import nl.k3n.sources.XMLEventSource;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -46,21 +42,17 @@ public class SimpleETL {
             else {
                 String fileName = line.getArgs()[0];
                 
-                Predicate<ZipEntry> zipFilter = (ZipEntry entry) -> {
-                    return entry.getName().toLowerCase().endsWith(".zip");
-                };
+                
                 
                 Predicate<ZipEntry> xmlFilter = (ZipEntry entry) -> {
                     return entry.getName().toLowerCase().endsWith(".xml");
                 };
                 
-                try (Source<InputStream> src = new ZipFileSource(new File(fileName), zipFilter)) {
+                try (Source<InputStream> src = new DoubleZipSource(new File(fileName), xmlFilter)) {
                     
-                    FlatMap<InputStream, InputStream> extractZips = new ZipStreamFilter(src, xmlFilter);
-                    FlatMap<InputStream, XMLEvent> streamToXml = new StreamToXMLEventStream(extractZips);
-                    Aggregator<XMLEvent, XMLChunk> aggregator = XMLChunkAggregator.BAGAggregator(streamToXml);
-                    
-                    Sink<XMLChunk> sink = new CountSink(aggregator);
+                    XMLEventSource eventStream = new XMLEventSource(src.stream());
+                    XMLChunkAggregator aggregator = XMLChunkAggregator.BAGAggregator(eventStream.stream());
+                    Sink<XMLChunk> sink = new CountSink(aggregator.stream());
                     
                     sink.run();
                 }

@@ -17,12 +17,16 @@ if (!hasProperty('mainClass')) {
     ext.mainClass = 'nl.k3n.SimpleETL'
 }
 
+compileJava {
+    //options.verbose = true
+}
+
 task debug (dependsOn: [classes], type: JavaExec) {
         main = mainClassName
         classpath = project.sourceSets.main.runtimeClasspath
         standardInput = System.in
         debug = true
-        args 'D:\\Downloads\\inspireadressen\\SingleContainer.zip'
+        args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
     }
     
 task run (dependsOn: [classes], type: JavaExec, overwrite: true) {
@@ -32,7 +36,10 @@ task run (dependsOn: [classes], type: JavaExec, overwrite: true) {
         debug = false
         minHeapSize = "2048m"
         maxHeapSize = "3072m"
-        args 'D:\\Downloads\\inspireadressen.zip'
+        //args 'D:\\Downloads\\inspireadressen.zip'
+        args 'D:\\Downloads\\inspireadressen\\TripleContainer.zip'
+        //args 'D:\\Downloads\\inspireadressen\\SingleContainer.zip'
+        //args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
     }
 
 repositories {

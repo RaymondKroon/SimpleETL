@@ -1,32 +1,35 @@
 
 package nl.k3n.aggregators;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.xml.namespace.QName;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import nl.k3n.interfaces.Aggregator;
-import nl.k3n.interfaces.Source;
 
 /**
  *
  * @author Raymond Kroon <raymond@k3n.nl>
  */
-public class XMLChunkAggregator implements Aggregator<XMLEvent, XMLChunk>, Iterator<XMLChunk> {
+public class XMLChunkAggregator implements Iterator<XMLChunk> {
 
     private final Predicate<StartElement> filter;
-    private final Iterable<XMLEvent> src;
+    private final Spliterator<XMLEvent> src;
     
     private XMLChunk nextChunk = null;
     private boolean chunkIsComplete = false;
     private Consumer<XMLEvent> parse;
     
-    public static XMLChunkAggregator BAGAggregator(Source<XMLEvent> src) {
+    private Stream<XMLChunk> innerStream;
+    
+    public static XMLChunkAggregator BAGAggregator(Stream<XMLEvent> src) {
         
         Predicate<StartElement> filter = (StartElement e) -> {
             
@@ -46,21 +49,19 @@ public class XMLChunkAggregator implements Aggregator<XMLEvent, XMLChunk>, Itera
         return new XMLChunkAggregator(src, filter);
     }
     
-    public XMLChunkAggregator(Iterable<XMLEvent> src, Predicate<StartElement> startElementFilter) {
+    public XMLChunkAggregator(Stream<XMLEvent> src, Predicate<StartElement> startElementFilter) {
         this.filter = startElementFilter;
-        this.src = src;
+        this.src = src.spliterator();
         this.parse = this::waitForStart;
-    }
-    
-    @Override
-    public Iterator<XMLChunk> iterator() {
-        return this;
+        
+        this.innerStream = StreamSupport.stream(Spliterators.spliterator(this, 1, 
+                Spliterator.CONCURRENT | Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL), true);
     }
 
     @Override
     public boolean hasNext() {
-        while (this.src.iterator().hasNext() && !this.chunkIsComplete) {
-            this.parse.accept(this.src.iterator().next());
+        while (this.src.tryAdvance(this.parse) && !this.chunkIsComplete) {
+            
         }
         
         return chunkIsComplete;
@@ -104,8 +105,7 @@ public class XMLChunkAggregator implements Aggregator<XMLEvent, XMLChunk>, Itera
         }
     }
 
-    @Override
-    public void close() throws IOException {
-        // nothing
+    public Stream<XMLChunk> stream() {
+        return this.innerStream;
     }
 }
