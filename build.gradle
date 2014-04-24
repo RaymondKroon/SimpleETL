@@ -21,6 +21,13 @@ compileJava {
     //options.verbose = true
 }
 
+test {
+    testLogging {
+        exceptionFormat = 'full'
+    }
+    testLogging.showStandardStreams = true
+}
+
 task debug (dependsOn: [classes], type: JavaExec) {
         main = mainClassName
         classpath = project.sourceSets.main.runtimeClasspath
@@ -36,8 +43,8 @@ task run (dependsOn: [classes], type: JavaExec, overwrite: true) {
         debug = false
         minHeapSize = "2048m"
         maxHeapSize = "3072m"
-        args 'D:\\Downloads\\inspireadressen.zip'
-        //args 'D:\\Downloads\\inspireadressen\\TripleContainer.zip'
+        //args 'D:\\Downloads\\inspireadressen.zip'
+        args 'D:\\Downloads\\inspireadressen\\TripleContainer.zip'
         //args 'D:\\Downloads\\inspireadressen\\SingleContainer.zip'
         //args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
     }
