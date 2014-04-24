@@ -79,7 +79,7 @@ public class XMLChunkAggregator implements Iterator<XMLChunk> {
     }
     
     private void waitForStart(XMLEvent event) {
-        if (event.isStartElement() )
+        if (event != null && event.isStartElement() )
         {
             QName elementName = event.asStartElement().getName();
             if (event.isStartElement() && this.filter.test(event.asStartElement())) {
@@ -93,7 +93,7 @@ public class XMLChunkAggregator implements Iterator<XMLChunk> {
     }
     
     private void parseInner(XMLEvent event) {
-        if (event.isEndElement()
+        if (event != null && event.isEndElement()
                 && event.asEndElement().getName().equals(this.nextChunk.Name)) 
         {
             this.nextChunk.Elements.add(event);
