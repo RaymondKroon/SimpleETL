@@ -1,5 +1,5 @@
 
-package nl.k3n.performance;
+package nl.k3n.performance.zip;
 
 import com.google.common.io.ByteStreams;
 import java.io.ByteArrayOutputStream;
@@ -11,12 +11,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.k3n.sources.SourcedZipEntry;
 import nl.k3n.sources.ZipFileSource;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Use a zip with zips
  * @author Raymond Kroon <raymond@k3n.nl>
  */
+@Ignore
 public class ZipContainerUnzip {
     
     public static String FILENAME = "D:\\Downloads\\inspireadressen.zip";

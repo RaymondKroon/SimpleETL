@@ -43,8 +43,8 @@ task run (dependsOn: [classes], type: JavaExec, overwrite: true) {
         debug = false
         minHeapSize = "2048m"
         maxHeapSize = "3072m"
-        //args 'D:\\Downloads\\inspireadressen.zip'
-        args 'D:\\Downloads\\inspireadressen\\TripleContainer.zip'
+        args 'D:\\Downloads\\inspireadressen.zip'
+        //args 'D:\\Downloads\\inspireadressen\\TripleContainer.zip'
         //args 'D:\\Downloads\\inspireadressen\\SingleContainer.zip'
         //args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
     }
@@ -59,6 +59,7 @@ repositories {
 dependencies {
     compile 'commons-cli:commons-cli:1.2'
     compile 'com.google.guava:guava:16.0.1'
+    compile 'com.fasterxml:aalto-xml:0.9.9'
     // You can read more about how to add dependency here:
     //   http://www.gradle.org/docs/current/userguide/dependency_management.html#sec:how_to_declare_your_dependencies
     testCompile group: 'junit', name: 'junit', version: '4.10'

@@ -30,6 +30,7 @@ public class ZipStreamEntry implements SourcedZipEntry {
     public ZipStreamEntry(ZipInputStream zipInputStream, ZipEntry entry, boolean buffered) throws IOException {
         this(zipInputStream, entry);
         
+        this.buffered = buffered;
         if (buffered) {
             this.data = ByteStreams.toByteArray(zipStream);
         }

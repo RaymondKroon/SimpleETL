@@ -1,39 +1,45 @@
 
-package nl.k3n.performance;
+package nl.k3n.performance.zip;
 
 import com.google.common.io.ByteStreams;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.time.LocalTime;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
 import nl.k3n.sources.SourcedZipEntry;
-import nl.k3n.sources.ZipFileSource;
 import nl.k3n.sources.ZipStreamSource;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Use a container zip with zips with xml files
+ * Use a zip with xml files
  * @author Raymond Kroon <raymond@k3n.nl>
  */
-public class DoubleUnzip {
+@Ignore
+public class XmlStreamUnzip {
     
-    public static String FILENAME = "D:\\Downloads\\inspireadressen.zip";
+    public static String FILENAME = "D:\\Downloads\\inspireadressen\\9999PND08032014.zip";
     
-    public DoubleUnzip() {
+    public XmlStreamUnzip() {
     }
 
     @Test
     public void singleThreaded() throws IOException {
-        try (ZipFileSource zipFileSource = new ZipFileSource(new File(FILENAME))) {
+        try (FileInputStream stream = new FileInputStream(new File(FILENAME))) {
+            ZipStreamSource zipFileSource = new ZipStreamSource(stream, false);
             zipFileSource.stream()
                     .filter(e -> !e.getEntry().isDirectory())
-                    .flatMap(this::streamToEntry)
+                    .forEach(this::zipConsumer);
+        }
+    }
+    
+    @Test
+    public void bufferedSingleThreaded() throws IOException {
+        try (FileInputStream stream = new FileInputStream(new File(FILENAME))) {
+            ZipStreamSource zipFileSource = new ZipStreamSource(stream, true);
+            zipFileSource.stream()
                     .filter(e -> !e.getEntry().isDirectory())
                     .forEach(this::zipConsumer);
         }
@@ -41,10 +47,20 @@ public class DoubleUnzip {
     
     @Test
     public void multiThreaded() throws IOException {
-        try (ZipFileSource zipFileSource = new ZipFileSource(new File(FILENAME))) {
-            zipFileSource.stream().parallel()
+        try (FileInputStream stream = new FileInputStream(new File(FILENAME))) {
+            ZipStreamSource zipFileSource = new ZipStreamSource(stream, false);
+            zipFileSource.stream()
+                    .parallel()
                     .filter(e -> !e.getEntry().isDirectory())
-                    .flatMap(this::streamToEntry)
+                    .forEach(this::zipConsumer);
+        }
+    }
+    
+    @Test
+    public void bufferedMultiThreaded() throws IOException {
+        try (FileInputStream stream = new FileInputStream(new File(FILENAME))) {
+            ZipStreamSource zipStreamSource = new ZipStreamSource(stream, true);
+            zipStreamSource.stream().parallel()
                     .filter(e -> !e.getEntry().isDirectory())
                     .forEach(this::zipConsumer);
         }
@@ -63,17 +79,7 @@ public class DoubleUnzip {
 
             // and forget about it :)
         } catch (IOException ex) {
-            Logger.getLogger(ZipContainerUnzip.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    private Stream<SourcedZipEntry> streamToEntry(SourcedZipEntry zipSource) {
-        ZipStreamSource zipStreamSource;
-        try {
-            zipStreamSource = new ZipStreamSource(zipSource.getData(), false);
-            return zipStreamSource.stream();
-        } catch (IOException ex) {
-            return Stream.empty();
+            assertTrue("io", false);
         }
     }
 }

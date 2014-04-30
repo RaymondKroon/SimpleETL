@@ -26,6 +26,8 @@ public class SimpleETL {
      */
     public static void main(String[] args) {
         
+        System.setProperty("stax.inputfactory", "com.fasterxml.aalto.stax.InputFactoryImpl");
+        
         Options options = new Options();
         options.addOption("h", "help", false, "display help");
         
