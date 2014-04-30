@@ -40,8 +40,8 @@ public class XMLEventSource extends FlatMap<InputStream, XMLEvent> {
         super(xmlFiles);
         this.factory = XMLInputFactory.newFactory("stax.inputfactory", null);
         
-        //XMLEventAllocator allocator = new XMLEventAllocatorImpl();
-        //this.factory.setEventAllocator(allocator);
+        XMLEventAllocator allocator = new XMLEventAllocatorImpl();
+        this.factory.setEventAllocator(allocator);
         
         
         this.mapper = Wrappers.uncheckedFunction(this::xmlToEventStreamMapper);
