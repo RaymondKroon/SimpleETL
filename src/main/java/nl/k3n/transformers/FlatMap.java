@@ -4,11 +4,11 @@ package nl.k3n.transformers;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import nl.k3n.interfaces.Source;
+import nl.k3n.spliterator.FixedSizeIteratorSpliterator;
 
 /**
  *
@@ -46,8 +46,8 @@ public class FlatMap<I, O> implements Iterator<O>, Source<O> {
         this.src = src.spliterator();
         this.mapper = mapper;
         
-        this.innerStream = StreamSupport.stream(Spliterators.spliterator(this, 1,
-                Spliterator.ORDERED), false);
+        this.innerStream = StreamSupport.stream(new FixedSizeIteratorSpliterator<>(this, Spliterator.IMMUTABLE | Spliterator.NONNULL, 10)
+            , false);
         
     }
 

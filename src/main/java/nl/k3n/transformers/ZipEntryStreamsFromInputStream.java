@@ -13,6 +13,7 @@ import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import nl.k3n.interfaces.Source;
+import nl.k3n.spliterator.FixedSizeIteratorSpliterator;
 import static nl.k3n.transformers.ZipMappers.*;
 
 /**
@@ -32,8 +33,8 @@ public class ZipEntryStreamsFromInputStream implements Source<InputStream>, Iter
         this.filter = zipEntryFilter;
         this.zipStream = new ZipInputStream(src);
         
-        this.innerStream = StreamSupport.stream(Spliterators.spliterator(this, 1,
-                        Spliterator.IMMUTABLE | Spliterator.NONNULL), false);
+        this.innerStream = StreamSupport.stream(new FixedSizeIteratorSpliterator<>(this,
+                        Spliterator.IMMUTABLE | Spliterator.NONNULL, 10), true);
         
     }
 

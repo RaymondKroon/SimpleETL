@@ -12,6 +12,7 @@ import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import nl.k3n.interfaces.Source;
+import nl.k3n.spliterator.FixedSizeIteratorSpliterator;
 
 /**
  *
@@ -36,10 +37,9 @@ public class ZipStreamSource implements Source<SourcedZipEntry> {
     }
     
     private Stream<SourcedZipEntry> createStream() {
-        return StreamSupport.stream(Spliterators.spliterator(
-                new ZipEntryIterator(), 745,
-                Spliterator.DISTINCT |
-                        Spliterator.IMMUTABLE | Spliterator.NONNULL), false);
+        return StreamSupport.stream(new FixedSizeIteratorSpliterator<>(
+                new ZipEntryIterator(), Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL,
+        1), false);
     }
     
     @Override

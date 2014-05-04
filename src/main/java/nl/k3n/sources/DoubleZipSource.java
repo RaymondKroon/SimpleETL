@@ -39,7 +39,7 @@ public class DoubleZipSource implements Source<InputStream> {
         
         this.entryMapper = new FlatMap<>(containerEntries, 
                 (InputStream stream) -> {
-                    return zipEntryStream(stream, zipEntryFilter);
+                    return zipEntryStream(stream, zipEntryFilter).parallel();
                 });
     }
     
