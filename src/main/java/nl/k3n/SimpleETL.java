@@ -5,8 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import nl.k3n.consumers.GMLCountSink;
-import nl.k3n.entity.GMLChunk;
+import nl.k3n.consumers.CountSink;
 import nl.k3n.flatmap.XMLStreamToGMLChunks;
 import nl.k3n.flatmap.ZipEntriesFromZipEntry;
 import nl.k3n.interfaces.Source;
@@ -19,6 +18,7 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.gdal.ogr.Geometry;
 
 public class SimpleETL {
     /**
@@ -57,15 +57,16 @@ public class SimpleETL {
                 
                 try (Source<SourcedZipEntry> src = new ZipFileSource(new File(fileName))) {
                     
-                    Stream<GMLChunk> pipeline = src.stream()
+                    Stream<Geometry> pipeline = src.stream().unordered()
                             .filter(zipFilter)
                             .flatMap(new ZipEntriesFromZipEntry())
                             .filter(xmlFilter)
                             .map(c -> unchecked(c::getData))
                             .flatMap(new XMLStreamToGMLChunks())
+                            .map(c -> Geometry.CreateFromGML(c.GML))
                             .parallel();
                     
-                    GMLCountSink sink = new GMLCountSink();
+                    CountSink sink = new CountSink();
                     pipeline.forEach(sink);
                     
                 }
