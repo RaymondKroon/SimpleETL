@@ -41,7 +41,7 @@ public class XMLEventSource implements Source<XMLEvent> {
     
     private Stream<XMLEvent> xmlToEventStreamMapper(InputStream src) throws IOException, XMLStreamException {
         
-        XMLEventReader reader = factory.createXMLEventReader(src);
+        XMLEventReader reader = getXMLInputFactory().createXMLEventReader(src);
         
         return StreamSupport.stream(Spliterators.spliterator((Iterator<XMLEvent>)reader, 1, 
                 Spliterator.IMMUTABLE | Spliterator.NONNULL), false);

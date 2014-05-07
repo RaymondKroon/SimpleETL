@@ -5,9 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import nl.k3n.aggregators.XMLChunk;
-import nl.k3n.consumers.CountSink;
-import nl.k3n.flatmap.XmlStreamToXmlChunks;
+import nl.k3n.consumers.GMLCountSink;
+import nl.k3n.entity.GMLChunk;
+import nl.k3n.flatmap.XMLStreamToGMLChunks;
 import nl.k3n.flatmap.ZipEntriesFromZipEntry;
 import nl.k3n.interfaces.Source;
 import nl.k3n.sources.ZipFileSource;
@@ -27,6 +27,7 @@ public class SimpleETL {
     public static void main(String[] args) {
         
         System.setProperty("stax.inputfactory", "com.fasterxml.aalto.stax.InputFactoryImpl");
+        System.setProperty("stax.outputfactory", "com.fasterxml.aalto.stax.OutputFactoryImpl");
         
         Options options = new Options();
         options.addOption("h", "help", false, "display help");
@@ -56,18 +57,17 @@ public class SimpleETL {
                 
                 try (Source<SourcedZipEntry> src = new ZipFileSource(new File(fileName))) {
                     
-                    Stream<XMLChunk> pipeline = src.stream()
+                    Stream<GMLChunk> pipeline = src.stream()
                             .filter(zipFilter)
                             .flatMap(new ZipEntriesFromZipEntry())
                             .filter(xmlFilter)
                             .map(c -> unchecked(c::getData))
-                            .flatMap(new XmlStreamToXmlChunks())
+                            .flatMap(new XMLStreamToGMLChunks())
                             .parallel();
                     
-                    CountSink sink = new CountSink();
+                    GMLCountSink sink = new GMLCountSink();
                     pipeline.forEach(sink);
                     
-                    sink.printStatistics();
                 }
                 catch (FileNotFoundException ex) {
                     System.err.println("File not found.");
