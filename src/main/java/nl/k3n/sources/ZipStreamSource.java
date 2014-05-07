@@ -1,6 +1,8 @@
 
 package nl.k3n.sources;
 
+import nl.k3n.zip.impl.ZipStreamEntry;
+import nl.k3n.zip.SourcedZipEntry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -69,6 +71,7 @@ public class ZipStreamSource implements Source<SourcedZipEntry> {
         public ZipEntryIterator() {
         }
 
+        @Override
         public boolean hasMoreElements() {
             return hasNext();
         }

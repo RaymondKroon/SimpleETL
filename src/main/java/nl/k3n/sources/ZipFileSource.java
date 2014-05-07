@@ -1,12 +1,14 @@
 
 package nl.k3n.sources;
 
+import nl.k3n.zip.SourcedZipEntry;
 import java.io.File;
 import java.io.IOException;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import nl.k3n.interfaces.Source;
+import nl.k3n.zip.impl.ZipFileEntry;
 
 /**
  *

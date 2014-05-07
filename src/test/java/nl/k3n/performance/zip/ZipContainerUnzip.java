@@ -9,7 +9,7 @@ import java.io.OutputStream;
 import java.time.LocalTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import nl.k3n.sources.SourcedZipEntry;
+import nl.k3n.zip.SourcedZipEntry;
 import nl.k3n.sources.ZipFileSource;
 import org.junit.Ignore;
 import org.junit.Test;

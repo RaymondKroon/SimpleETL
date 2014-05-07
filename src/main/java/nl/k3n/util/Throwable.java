@@ -7,7 +7,7 @@ import java.util.function.Function;
  *
  * @author Raymond Kroon <raymond@k3n.nl>
  */
-public class Wrappers {
+public class Throwable {
     @FunctionalInterface
     public interface CheckedRunnable {
         public void run() throws Exception;
@@ -41,5 +41,17 @@ public class Wrappers {
                 }
             }
         };
+    }
+    
+    public interface CheckedMethod<T> {
+        public T call() throws Exception;
+    }
+    
+    public static <T> T unchecked(CheckedMethod<T> method) {
+        try {
+            return method.call();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

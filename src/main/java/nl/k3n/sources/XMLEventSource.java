@@ -13,20 +13,31 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.stream.util.XMLEventAllocator;
 import javax.xml.stream.util.XMLEventConsumer;
-import nl.k3n.transformers.FlatMap;
-import nl.k3n.util.Wrappers;
+import nl.k3n.interfaces.Source;
 
 /**
  *
  * @author Raymond Kroon <raymond@k3n.nl>
  */
-public class XMLEventSource extends FlatMap<InputStream, XMLEvent> {
+public class XMLEventSource implements Source<XMLEvent> {
     
-    private XMLInputFactory factory;
+    private final static Object staticLock = new Object();
+    
+    private static XMLInputFactory factory;
+    
+    private static XMLInputFactory getXMLInputFactory() {
+        synchronized(staticLock) {
+            if (factory == null) {
+                factory = XMLInputFactory.newFactory("stax.inputfactory", null);
+            }
+            return factory;
+        }
+    }
+    
+    private final Stream<XMLEvent> innerStream;
     
     private Stream<XMLEvent> xmlToEventStreamMapper(InputStream src) throws IOException, XMLStreamException {
         
@@ -36,23 +47,30 @@ public class XMLEventSource extends FlatMap<InputStream, XMLEvent> {
                 Spliterator.IMMUTABLE | Spliterator.NONNULL), false);
     }
     
-    public XMLEventSource(Stream<InputStream> xmlFiles) {
-        super(xmlFiles);
-        this.factory = XMLInputFactory.newFactory("stax.inputfactory", null);
+    public XMLEventSource(InputStream xmlStream) throws IOException, XMLStreamException {
         
         XMLEventAllocator allocator = new XMLEventAllocatorImpl();
-        this.factory.setEventAllocator(allocator);
+        getXMLInputFactory().setEventAllocator(allocator);
         
-        
-        this.mapper = Wrappers.uncheckedFunction(this::xmlToEventStreamMapper);
+        innerStream = xmlToEventStreamMapper(xmlStream);
+    }
+
+    @Override
+    public Stream<XMLEvent> stream() {
+        return innerStream;
+    }
+
+    @Override
+    public void close() throws IOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     public class XMLEventAllocatorImpl implements XMLEventAllocator {
 
-        private XMLEventFactory factory;
+        private final XMLEventFactory factory;
         
         public XMLEventAllocatorImpl() {
-            this.factory = XMLEventFactory.newFactory();
+            factory = XMLEventFactory.newFactory();
         }
         
         @Override
@@ -63,10 +81,10 @@ public class XMLEventSource extends FlatMap<InputStream, XMLEvent> {
         @Override
         public XMLEvent allocate(XMLStreamReader reader) throws XMLStreamException {
             if (reader.isStartElement()) {
-                return this.factory.createStartElement("", "", reader.getLocalName());
+                return factory.createStartElement("", "", reader.getLocalName());
             }
             else if (reader.isEndElement()) {
-                return this.factory.createEndElement("", "", reader.getLocalName());
+                return factory.createEndElement("", "", reader.getLocalName());
             }
             
             return null;

@@ -1,5 +1,5 @@
 
-package nl.k3n.sources;
+package nl.k3n.zip;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,6 +1,7 @@
 
-package nl.k3n.sources;
+package nl.k3n.zip.impl;
 
+import nl.k3n.zip.SourcedZipEntry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;

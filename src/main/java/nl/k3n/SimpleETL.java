@@ -3,16 +3,16 @@ package nl.k3n;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.function.Predicate;
-import java.util.zip.ZipEntry;
+import java.util.stream.Stream;
 import nl.k3n.aggregators.XMLChunk;
-import nl.k3n.aggregators.XMLChunkAggregator;
-import nl.k3n.interfaces.Sink;
+import nl.k3n.consumers.CountSink;
+import nl.k3n.flatmap.XmlStreamToXmlChunks;
+import nl.k3n.flatmap.ZipEntriesFromZipEntry;
 import nl.k3n.interfaces.Source;
-import nl.k3n.sinks.CountSink;
-import nl.k3n.sources.DoubleZipSource;
-import nl.k3n.sources.XMLEventSource;
+import nl.k3n.sources.ZipFileSource;
+import static nl.k3n.util.Throwable.*;
+import nl.k3n.zip.SourcedZipEntry;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -46,17 +46,28 @@ public class SimpleETL {
                 
                 
                 
-                Predicate<ZipEntry> xmlFilter = (ZipEntry entry) -> {
-                    return entry.getName().toLowerCase().endsWith(".xml");
+                Predicate<SourcedZipEntry> zipFilter = (SourcedZipEntry entry) -> {
+                    return entry.getEntry().getName().toLowerCase().endsWith(".zip");
                 };
                 
-                try (Source<InputStream> src = new DoubleZipSource(new File(fileName), xmlFilter)) {
+                Predicate<SourcedZipEntry> xmlFilter = (SourcedZipEntry entry) -> {
+                    return entry.getEntry().getName().toLowerCase().endsWith(".xml");
+                };
+                
+                try (Source<SourcedZipEntry> src = new ZipFileSource(new File(fileName))) {
                     
-                    XMLEventSource eventStream = new XMLEventSource(src.stream());
-                    XMLChunkAggregator aggregator = XMLChunkAggregator.BAGAggregator(eventStream.stream());
-                    Sink<XMLChunk> sink = new CountSink(aggregator.stream());
+                    Stream<XMLChunk> pipeline = src.stream()
+                            .filter(zipFilter)
+                            .flatMap(new ZipEntriesFromZipEntry())
+                            .filter(xmlFilter)
+                            .map(c -> unchecked(c::getData))
+                            .flatMap(new XmlStreamToXmlChunks())
+                            .parallel();
                     
-                    sink.run();
+                    CountSink sink = new CountSink();
+                    pipeline.forEach(sink);
+                    
+                    sink.printStatistics();
                 }
                 catch (FileNotFoundException ex) {
                     System.err.println("File not found.");

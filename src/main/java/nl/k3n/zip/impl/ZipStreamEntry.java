@@ -1,6 +1,7 @@
 
-package nl.k3n.sources;
+package nl.k3n.zip.impl;
 
+import nl.k3n.zip.SourcedZipEntry;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import java.io.ByteArrayInputStream;

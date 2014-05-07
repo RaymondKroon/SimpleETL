@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalTime;
-import nl.k3n.sources.SourcedZipEntry;
+import nl.k3n.zip.SourcedZipEntry;
 import nl.k3n.sources.ZipStreamSource;
 import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
