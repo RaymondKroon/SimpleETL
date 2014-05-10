@@ -1,6 +1,7 @@
 
 package nl.k3n.entity.builder;
 
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
@@ -11,11 +12,19 @@ public interface EntityBuilder<T> {
     boolean isComplete();
     
     /**
-     * Consumes stream until done.
-     * Implementation should state what the begin and endconditions are
+     * allocates exactly one element. Does not change state of the reader.
      * @param reader 
      */
-    void consume(XMLStreamReader reader);
+    void allocate(XMLStreamReader reader) throws IllegalStateException;
+    
+    /**
+     * Monsumes the stream until done or consumed.
+     * May change the state
+     * @param reader
+     * @returns complete or not
+     * @throws IllegalStateException 
+     */
+    boolean consume(XMLStreamReader reader) throws IllegalStateException, XMLStreamException;
     
     /**
      * returns a new builder. Should be threadsafe

@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import nl.k3n.consumers.CountSink;
+import nl.k3n.entity.GMLChunk;
 import nl.k3n.flatmap.XMLStreamToGMLChunks;
+import nl.k3n.flatmap.XMLStreamToGeometries;
 import nl.k3n.flatmap.ZipEntriesFromZipEntry;
 import nl.k3n.interfaces.Source;
 import nl.k3n.sources.ZipFileSource;
@@ -18,13 +20,17 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.gdal.ogr.Geometry;
+import org.deegree.feature.types.AppSchema;
+import org.deegree.geometry.Geometry;
+import org.deegree.geometry.io.WKBWriter;
+import org.deegree.gml.GMLVersion;
+import org.deegree.gml.schema.GMLAppSchemaReader;
 
 public class SimpleETL {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassCastException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         
         System.setProperty("stax.inputfactory", "com.fasterxml.aalto.stax.InputFactoryImpl");
         System.setProperty("stax.outputfactory", "com.fasterxml.aalto.stax.OutputFactoryImpl");
@@ -45,7 +51,8 @@ public class SimpleETL {
             else {
                 String fileName = line.getArgs()[0];
                 
-                
+                GMLAppSchemaReader appSchemaReader = new GMLAppSchemaReader(GMLVersion.GML_31, null, "http://www.opengis.net/gml");
+                AppSchema appSchema = appSchemaReader.extractAppSchema();
                 
                 Predicate<SourcedZipEntry> zipFilter = (SourcedZipEntry entry) -> {
                     return entry.getEntry().getName().toLowerCase().endsWith(".zip");
@@ -57,16 +64,16 @@ public class SimpleETL {
                 
                 try (Source<SourcedZipEntry> src = new ZipFileSource(new File(fileName))) {
                     
-                    Stream<Geometry> pipeline = src.stream().unordered()
+                    Stream<byte[]> pipeline = src.stream().unordered()
                             .filter(zipFilter)
                             .flatMap(new ZipEntriesFromZipEntry())
                             .filter(xmlFilter)
                             .map(c -> unchecked(c::getData))
-                            .flatMap(new XMLStreamToGMLChunks())
-                            .map(c -> Geometry.CreateFromGML(c.GML))
+                            .flatMap(new XMLStreamToGeometries(appSchema))
+                            .map(g -> unchecked(() -> WKBWriter.write(g)))
                             .parallel();
                     
-                    CountSink sink = new CountSink();
+                    CountSink sink = new CountSink(100000);
                     pipeline.forEach(sink);
                     
                 }

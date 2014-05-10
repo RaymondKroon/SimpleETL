@@ -55,13 +55,16 @@ repositories {
     // You may define additional repositories, or even remove "mavenCentral()".
     // Read more about repositories here:
     //   http://www.gradle.org/docs/current/userguide/dependency_management.html#sec:repositories
+    maven {
+        url 'http://repo.deegree.org/content/repositories/public/'
+    }
 }
 
 dependencies {
     compile 'commons-cli:commons-cli:1.2'
     compile 'com.google.guava:guava:16.0.1'
     compile 'com.fasterxml:aalto-xml:0.9.9'
-    compile files('libs/gdal.jar')
+    compile 'org.deegree:deegree-core-base:3.3.9'
     // You can read more about how to add dependency here:
     //   http://www.gradle.org/docs/current/userguide/dependency_management.html#sec:how_to_declare_your_dependencies
     testCompile group: 'junit', name: 'junit', version: '4.10'

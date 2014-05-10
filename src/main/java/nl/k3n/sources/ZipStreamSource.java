@@ -41,7 +41,7 @@ public class ZipStreamSource implements Source<SourcedZipEntry> {
     private Stream<SourcedZipEntry> createStream() {
         return StreamSupport.stream(new FixedSizeIteratorSpliterator<>(
                 new ZipEntryIterator(), Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL,
-        1), false);
+        2), false);
     }
     
     @Override

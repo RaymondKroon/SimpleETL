@@ -6,9 +6,3 @@ Requirements
 ============
 * Java SDK 1.8
 * Gradle
-* GDAL/OGR
-
-GDAL/OGR (Windows)
-==================
-* Download from http://www.gisinternals.com/sdk/
-* add [INSTALLDIR]/bin and [INSTALLDIR]/bin/gdal/java to PATH

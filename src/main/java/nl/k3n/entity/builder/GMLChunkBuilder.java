@@ -38,15 +38,24 @@ public class GMLChunkBuilder implements EntityBuilder<GMLChunk> {
      * @param reader
      */
     @Override
-    public void consume(XMLStreamReader reader) {
-        try {
-            while (!complete && reader.hasNext()) {
-                reader.next();
-                consumer.accept(reader);
-            }
-        } catch (XMLStreamException ex) {
-            return;
+    public void allocate(XMLStreamReader reader) {
+        if (!complete) {
+            consumer.accept(reader);
         }
+        else {
+            throw new IllegalStateException("Entity is complete");
+        }
+    }
+    
+    @Override
+    public boolean consume(XMLStreamReader reader) throws IllegalStateException, XMLStreamException {
+        consumer.accept(reader);
+        while(!complete && reader.hasNext()) {
+            reader.next();
+            consumer.accept(reader);
+        }
+        
+        return complete;
     }
 
     @Override

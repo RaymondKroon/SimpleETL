@@ -64,22 +64,33 @@ public class XMLStreamAggregator<T> implements Source<T> {
     public class EntityIterator implements Iterator<T> {
         
         private T next = null;
+        private EntityBuilder<T> privateBuilder = builder.newInstance();
         
         @Override
         public boolean hasNext() {
-            EntityBuilder<T> privateBuilder = builder.newInstance();
-            privateBuilder.consume(reader);
-            if (privateBuilder.isComplete()) {
-                next = privateBuilder.build();
-                return true;
-            }
-            else {
+            try {
+                
+                if (privateBuilder.consume(reader)) {
+                    next = privateBuilder.build();
+                    privateBuilder = builder.newInstance();
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            } catch (XMLStreamException ex) {
                 return false;
             }
         }
 
         @Override
         public T next() {
+            if (next == null) {
+                if (hasNext()) {
+                    return next;
+                }
+                return null;
+            }
             return next;
         }
         

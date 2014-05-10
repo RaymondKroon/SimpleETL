@@ -10,14 +10,16 @@ import java.util.function.Consumer;
 public class CountSink<T> implements Consumer<T> {
 
     private int count = 0;
+    private final int logRate;
     
-    public CountSink() {
+    public CountSink(int logRate) {
+        this.logRate = logRate;
     }
 
     @Override
     public synchronized void accept(T t) {
         count++;
-        if (count % 100000 == 0) {
+        if (count % logRate == 0) {
             System.out.println("Parsed: " + count);
         }
     }
