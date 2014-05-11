@@ -82,12 +82,12 @@ public class SimpleETL {
                     //CountSink sink = new CountSink(100000);
                     
                     CopyToPostgres copy = new CopyToPostgres((PGConnection)unchecked(() -> dataSource.getConnection()), 
-                            "bag_copy_test.geometry", 500000, 100000);
+                            "bag_copy_test.geometry", 100000, 100000);
                     
                     pipeline.forEach(copy);
                     
                     // flush remainder
-                    unchecked(copy::flush);
+                    copy.waitForFlush();
                     
                 }
                 catch (FileNotFoundException ex) {
