@@ -4,10 +4,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import nl.k3n.consumers.CopyToPostgres;
 import nl.k3n.consumers.CountSink;
-import nl.k3n.entity.GMLChunk;
-import nl.k3n.flatmap.XMLStreamToGMLChunks;
 import nl.k3n.flatmap.XMLStreamToGeometries;
 import nl.k3n.flatmap.ZipEntriesFromZipEntry;
 import nl.k3n.interfaces.Source;
@@ -21,10 +21,11 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.deegree.feature.types.AppSchema;
-import org.deegree.geometry.Geometry;
 import org.deegree.geometry.io.WKBWriter;
 import org.deegree.gml.GMLVersion;
 import org.deegree.gml.schema.GMLAppSchemaReader;
+import org.postgresql.PGConnection;
+import org.postgresql.ds.PGSimpleDataSource;
 
 public class SimpleETL {
     /**
@@ -62,6 +63,11 @@ public class SimpleETL {
                     return entry.getEntry().getName().toLowerCase().endsWith(".xml");
                 };
                 
+                PGSimpleDataSource dataSource = new PGSimpleDataSource();
+                dataSource.setDatabaseName("gisdb");
+                dataSource.setUser("postgres");
+                dataSource.setPassword("postgres");
+                
                 try (Source<SourcedZipEntry> src = new ZipFileSource(new File(fileName))) {
                     
                     Stream<byte[]> pipeline = src.stream().unordered()
@@ -73,8 +79,15 @@ public class SimpleETL {
                             .map(g -> unchecked(() -> WKBWriter.write(g)))
                             .parallel();
                     
-                    CountSink sink = new CountSink(100000);
-                    pipeline.forEach(sink);
+                    //CountSink sink = new CountSink(100000);
+                    
+                    CopyToPostgres copy = new CopyToPostgres((PGConnection)unchecked(() -> dataSource.getConnection()), 
+                            "bag_copy_test.geometry", 500000, 100000);
+                    
+                    pipeline.forEach(copy);
+                    
+                    // flush remainder
+                    unchecked(copy::flush);
                     
                 }
                 catch (FileNotFoundException ex) {
