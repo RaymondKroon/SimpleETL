@@ -28,8 +28,11 @@ public class CopyToPostgres implements Consumer<byte[]> {
     private int logRate;
 
     private ForkJoinPool pool;
+    private int poolQueueSize;
 
-    public CopyToPostgres(PGConnection connection, String table, int batchSize, int logRate) {
+    public CopyToPostgres(PGConnection connection, String table, int batchSize, 
+        int poolQueueSize, int logRate) {
+        
         this.batchSize = batchSize;
         this.batched = new byte[batchSize][];
         this.batchCount = 0;
@@ -40,6 +43,7 @@ public class CopyToPostgres implements Consumer<byte[]> {
         this.logRate = logRate;
 
         this.pool = new ForkJoinPool(1);
+        this.poolQueueSize = poolQueueSize;
     }
 
     @Override
@@ -62,8 +66,12 @@ public class CopyToPostgres implements Consumer<byte[]> {
         for (int i = 0; i < batchCount; i++) {
             sb.append(StringUtils.bytesToHex(batched[i])).append("\n");
         }
-
+        
         Runnable copy = copyAction(sb.toString());
+        while (pool.getQueuedSubmissionCount() > poolQueueSize) {
+            // wait
+        }
+        
         pool.execute(copy);
         
         batchCount = 0;
@@ -73,7 +81,7 @@ public class CopyToPostgres implements Consumer<byte[]> {
     public void waitForFlush() {
         flush();
         System.out.println("Waiting for " + pool.getQueuedSubmissionCount() + " + " + pool.getQueuedTaskCount() + " tasks to complete");
-        pool.awaitQuiescence(10, TimeUnit.MINUTES);
+        pool.awaitQuiescence(30, TimeUnit.MINUTES);
     }
 
     private Runnable copyAction(String data) {
