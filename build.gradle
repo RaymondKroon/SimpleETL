@@ -1,10 +1,24 @@
+version = '0.1'
+
 apply plugin: 'java'
 apply plugin: 'application'
+
+apply plugin: 'fatjar'
 
 sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 mainClassName = 'nl.k3n.SimpleETL'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2'
+    }
+}
 
 // NetBeans will automatically add "run" and "debug" tasks relying on the
 // "mainClass" property. You may however define the property prior executing
@@ -21,6 +35,18 @@ compileJava {
     //options.verbose = true
 }
 
+fatJarPrepareFiles {
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
+
+fatJar {
+    manifest {
+        attributes("Implementation-Title": "SimpleETL", "Implementation-Version": version, 'Main-Class': mainClassName)
+    }
+}
+
 test {
     testLogging {
         exceptionFormat = 'full'
@@ -30,25 +56,25 @@ test {
 }
 
 task debug (dependsOn: [classes], type: JavaExec) {
-        main = mainClassName
-        classpath = project.sourceSets.main.runtimeClasspath
-        standardInput = System.in
-        debug = true
-        args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
-    }
+    main = mainClassName
+    classpath = project.sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    debug = true
+    args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
+}
     
 task run (dependsOn: [classes], type: JavaExec, overwrite: true) {
-        main = mainClassName
-        classpath = project.sourceSets.main.runtimeClasspath
-        standardInput = System.in
-        debug = false
-        minHeapSize = "2048m"
-        maxHeapSize = "4096m"
-        args 'D:\\Downloads\\inspireadressen.zip'
-        //args 'D:\\Downloads\\inspireadressen\\TripleContainer.zip'
-        //args 'D:\\Downloads\\inspireadressen\\SingleContainer.zip'
-        //args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
-    }
+    main = mainClassName
+    classpath = project.sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    debug = false
+    minHeapSize = "2048m"
+    maxHeapSize = "4096m"
+    args 'D:\\Downloads\\inspireadressen.zip'
+    //args 'D:\\Downloads\\inspireadressen\\TripleContainer.zip'
+    //args 'D:\\Downloads\\inspireadressen\\SingleContainer.zip'
+    //args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
+}
 
 repositories {
     mavenCentral()
