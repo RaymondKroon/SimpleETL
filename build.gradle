@@ -45,6 +45,7 @@ fatJar {
     manifest {
         attributes("Implementation-Title": "SimpleETL", "Implementation-Version": version, 'Main-Class': mainClassName)
     }
+    destinationDir file('build/jar')
 }
 
 test {
@@ -60,7 +61,7 @@ task debug (dependsOn: [classes], type: JavaExec) {
     classpath = project.sourceSets.main.runtimeClasspath
     standardInput = System.in
     debug = true
-    args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
+    args ('-T', '-f', 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip')
 }
     
 task run (dependsOn: [classes], type: JavaExec, overwrite: true) {
@@ -70,10 +71,8 @@ task run (dependsOn: [classes], type: JavaExec, overwrite: true) {
     debug = false
     minHeapSize = "2048m"
     maxHeapSize = "4096m"
-    args 'D:\\Downloads\\inspireadressen.zip'
-    //args 'D:\\Downloads\\inspireadressen\\TripleContainer.zip'
-    //args 'D:\\Downloads\\inspireadressen\\SingleContainer.zip'
-    //args 'D:\\Downloads\\inspireadressen\\DoubleContainer.zip'
+    //args ('-T', '-f', 'D:\\Downloads\\inspireadressen.zip')
+    args ('-c', 'jdbc:postgresql://localhost:5432/gisdb', '-u','postgres','-p','postgres', '-f', 'D:\\Downloads\\inspireadressen.zip')
 }
 
 repositories {
