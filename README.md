@@ -7,4 +7,4 @@ Requirements
 * Java SDK 1.8
 * Gradle
 
-[![Build Status](https://travis-ci.org/raymondkroon/SimpleETL.svg?branch=master)](https://travis-ci.org/raymondkroon/SimpleETL)
+[![Build Status](https://travis-ci.org/RaymondKroon/SimpleETL.svg?branch=master)](https://travis-ci.org/RaymondKroon/SimpleETL)
